@@ -1,0 +1,36 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.13.35931.197
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Griddev.Module", "Griddev.Module\Griddev.Module.csproj", "{79540285-41DC-8560-0005-B9AE3C247931}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Griddev.Win", "Griddev.Win\Griddev.Win.csproj", "{CC7E7876-0A99-C1C4-DED5-7BB2745BBDB5}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		EasyTest|Any CPU = EasyTest|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{79540285-41DC-8560-0005-B9AE3C247931}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{79540285-41DC-8560-0005-B9AE3C247931}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{79540285-41DC-8560-0005-B9AE3C247931}.EasyTest|Any CPU.ActiveCfg = EasyTest|Any CPU
+		{79540285-41DC-8560-0005-B9AE3C247931}.EasyTest|Any CPU.Build.0 = EasyTest|Any CPU
+		{79540285-41DC-8560-0005-B9AE3C247931}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{79540285-41DC-8560-0005-B9AE3C247931}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CC7E7876-0A99-C1C4-DED5-7BB2745BBDB5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CC7E7876-0A99-C1C4-DED5-7BB2745BBDB5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CC7E7876-0A99-C1C4-DED5-7BB2745BBDB5}.EasyTest|Any CPU.ActiveCfg = EasyTest|Any CPU
+		{CC7E7876-0A99-C1C4-DED5-7BB2745BBDB5}.EasyTest|Any CPU.Build.0 = EasyTest|Any CPU
+		{CC7E7876-0A99-C1C4-DED5-7BB2745BBDB5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CC7E7876-0A99-C1C4-DED5-7BB2745BBDB5}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {D66E0C69-77BC-409B-957F-A118367B46FB}
+	EndGlobalSection
+EndGlobal

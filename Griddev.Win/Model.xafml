@@ -1,0 +1,37 @@
+﻿<Application Logo="ExpressAppLogo">
+	<Options UIType="TabbedMDI" FormStyle="Ribbon" />
+	<NavigationItems NavigationStyle="Accordion" DefaultChildItemsDisplayStyle="List"/>
+	<Views>
+		<ListView Id="BOMItem_ListView" EditorTypeName="DevExpress.ExpressApp.TreeListEditors.Win.TreeListEditor" IsTreeListEditor="True" AllowEdit="True">
+			<Columns>
+				<ColumnInfo Id="LevelDisplay" Width="60" Index="0" AllowEdit="False" />
+				<ColumnInfo Id="ItemCode" Width="80" Index="1" AllowEdit="False" />
+				<ColumnInfo Id="ItemName" Width="200" Index="2" AllowEdit="False" />
+				<ColumnInfo Id="ItemTypeDisplay" Width="80" Index="3" AllowEdit="False" />
+				<ColumnInfo Id="Quantity" Width="80" Index="4" AllowEdit="True" />
+				<ColumnInfo Id="Unit" Width="50" Index="5" AllowEdit="False" />
+			</Columns>
+		</ListView>
+		<ListView Id="Department_ListView" EditorTypeName="DevExpress.ExpressApp.TreeListEditors.Win.TreeListEditor" IsTreeListEditor="True" AllowEdit="True">
+			<Columns>
+				<ColumnInfo Id="Name" Width="200" Index="0" AllowEdit="True" />
+				<ColumnInfo Id="EmployeeCount" Width="100" Index="1" AllowEdit="True" />
+				<ColumnInfo Id="ParentDepartment" Width="150" Index="2" AllowEdit="False" />
+			</Columns>
+		</ListView>
+	</Views>
+	<BOModel>
+		<Class Name="Griddev.Module.BusinessObjects.BOMItem" TreeListNodeImageName="BO_Product">
+			<OwnMembers>
+				<Member Name="Parent" IsTreeNodeParent="True" />
+				<Member Name="Children" IsTreeNodeChildren="True" />
+			</OwnMembers>
+		</Class>
+		<Class Name="Griddev.Module.BusinessObjects.Department" TreeListNodeImageName="BO_Organization">
+			<OwnMembers>
+				<Member Name="ParentDepartment" IsTreeNodeParent="True" />
+				<Member Name="SubDepartments" IsTreeNodeChildren="True" />
+			</OwnMembers>
+		</Class>
+	</BOModel>
+</Application>
