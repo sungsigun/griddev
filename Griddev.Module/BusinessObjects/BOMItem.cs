@@ -23,9 +23,6 @@ namespace Griddev.Module.BusinessObjects
     [ImageName("BO_Product")]
     [XafDisplayName("BOM 등록")]
     [ModelDefault("EditorTypeName", "DevExpress.ExpressApp.TreeListEditors.Win.TreeListEditor")]
-    [ModelDefault("AllowEdit", "True")]
-    [ModelDefault("AllowNew", "False")]
-    [ModelDefault("AllowDelete", "False")]
     
     // 레벨별 텍스트 색상 구분
     [Appearance("Level0", AppearanceItemType = "ViewItem", TargetItems = "*", 
@@ -45,6 +42,8 @@ namespace Griddev.Module.BusinessObjects
         private BOMItem _parent;
         private int _level;
         private Item _item;
+        private string _version;
+        private bool _isActive;
 
         #region 기본 속성들
         [DataSourceProperty("AvailableItems")]
@@ -55,6 +54,23 @@ namespace Griddev.Module.BusinessObjects
         {
             get => _item;
             set => SetPropertyValue(nameof(Item), ref _item, value);
+        }
+
+        [Size(20)]
+        [Index(10)]
+        [ModelDefault("AllowEdit", "False")]
+        public string Version
+        {
+            get => _version;
+            set => SetPropertyValue(nameof(Version), ref _version, value);
+        }
+
+        [Index(11)]
+        [ModelDefault("AllowEdit", "False")]
+        public bool IsActive
+        {
+            get => _isActive;
+            set => SetPropertyValue(nameof(IsActive), ref _isActive, value);
         }
 
         // 표시 컬럼들 - 레벨에 들여쓰기 적용
@@ -102,8 +118,6 @@ namespace Griddev.Module.BusinessObjects
         [Index(4)]
         [ModelDefault("DisplayFormat", "{0:N2}")]
         [ModelDefault("EditMask", "f2")]
-        [ModelDefault("AllowEdit", "True")]
-        [ModelDefault("ImmediatePostData", "True")]
         [Size(80)]
         public decimal? Quantity
         {
@@ -176,6 +190,8 @@ namespace Griddev.Module.BusinessObjects
         {
             base.AfterConstruction();
             Quantity = 1M;
+            Version = "1.0";
+            IsActive = true;
         }
 
         protected override void OnSaving()
@@ -260,6 +276,66 @@ namespace Griddev.Module.BusinessObjects
                 current = current.Parent;
             }
             return false;
+        }
+
+        public BOMItem CreateNewVersion()
+        {
+            if (Parent != null)
+            {
+                throw new InvalidOperationException("최상위 BOM에서만 새 버전을 생성할 수 있습니다.");
+            }
+
+            // 현재 버전을 비활성화
+            IsActive = false;
+
+            // 새 버전 번호 계산
+            var currentVersionNumber = GetVersionNumber(Version);
+            var newVersionNumber = currentVersionNumber + 0.1;
+            var newVersionString = newVersionNumber.ToString("F1");
+
+            // 새 버전 생성
+            var newVersion = new BOMItem(Session)
+            {
+                Item = this.Item,
+                Quantity = this.Quantity,
+                Version = newVersionString,
+                IsActive = true,
+                Parent = null
+            };
+
+            // 하위 구조 복사
+            CopyChildrenToNewVersion(this, newVersion);
+
+            return newVersion;
+        }
+
+        private void CopyChildrenToNewVersion(BOMItem source, BOMItem target)
+        {
+            foreach (BOMItem child in source.Children)
+            {
+                var newChild = new BOMItem(Session)
+                {
+                    Item = child.Item,
+                    Quantity = child.Quantity,
+                    Version = target.Version,
+                    IsActive = true,
+                    Parent = target
+                };
+
+                // 재귀적으로 하위 구조 복사
+                CopyChildrenToNewVersion(child, newChild);
+            }
+        }
+
+        private double GetVersionNumber(string version)
+        {
+            if (string.IsNullOrEmpty(version))
+                return 1.0;
+
+            if (double.TryParse(version, out double result))
+                return result;
+
+            return 1.0;
         }
         #endregion
 

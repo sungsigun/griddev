@@ -31,7 +31,10 @@ namespace Griddev.Module.Controllers
         private SimpleAction pasteAction;
         private SimpleAction deleteAction;
         private SimpleAction undoAction;
+        private SimpleAction createVersionAction;
+        private SimpleAction toggleVersionViewAction;
         private List<BOMItem> copiedNodes = new List<BOMItem>();
+        private bool showAllVersions = false; // 기본값: 최신버전만
 
         public BOMTreeViewController()
         {
@@ -52,6 +55,10 @@ namespace Griddev.Module.Controllers
             // 이벤트 핸들러 등록
             View.SelectionChanged += View_SelectionChanged;
             View.ControlsCreated += View_ControlsCreated;
+            
+            // 초기 필터 적용 (최신버전만)
+            ApplyVersionFilter();
+            
             UpdateActionStates();
         }
         
@@ -158,6 +165,25 @@ namespace Griddev.Module.Controllers
                 ToolTip = "마지막 작업을 되돌립니다."
             };
             undoAction.Execute += UndoAction_Execute;
+
+            // 새 버전 생성 액션
+            createVersionAction = new SimpleAction(this, "BOMTreeCreateVersion", PredefinedCategory.Edit)
+            {
+                Caption = "새 버전 생성",
+                ImageName = "Action_Clone",
+                ToolTip = "선택된 BOM의 새 버전을 생성합니다.",
+                SelectionDependencyType = SelectionDependencyType.RequireSingleObject
+            };
+            createVersionAction.Execute += CreateVersionAction_Execute;
+
+            // 버전 보기 토글 액션
+            toggleVersionViewAction = new SimpleAction(this, "BOMTreeToggleVersionView", PredefinedCategory.View)
+            {
+                Caption = "모든버전보기",
+                ImageName = "Action_Filter",
+                ToolTip = "최신버전만 보기 / 모든버전 보기를 전환합니다."
+            };
+            toggleVersionViewAction.Execute += ToggleVersionViewAction_Execute;
         }
 
         protected override void OnViewControlsCreated()
@@ -499,11 +525,17 @@ namespace Griddev.Module.Controllers
 
         private void UpdateActionStates()
         {
+            bool hasSelection = View.SelectedObjects.Count > 0;
+            bool hasSingleSelection = View.SelectedObjects.Count == 1;
+            bool hasCopiedData = copiedNodes.Count > 0;
+            bool isRootItem = hasSingleSelection && (View.CurrentObject as BOMItem)?.Parent == null;
+
             selectItemAction.Enabled["Always"] = true;
-            addChildItemAction.Enabled["HasSelection"] = View.SelectedObjects.Count == 1;
-            pasteAction.Enabled["HasCopiedNodes"] = copiedNodes.Count > 0;
-            copyAction.Enabled["HasSelection"] = View.SelectedObjects.Count > 0;
-            deleteAction.Enabled["HasSelection"] = View.SelectedObjects.Count > 0;
+            addChildItemAction.Enabled["HasSelection"] = hasSingleSelection;
+            pasteAction.Enabled["HasCopiedNodes"] = hasCopiedData;
+            copyAction.Enabled["HasSelection"] = hasSelection;
+            deleteAction.Enabled["HasSelection"] = hasSelection;
+            createVersionAction.Enabled["IsRootItem"] = isRootItem; // 최상위 항목에서만 버전 생성 가능
         }
 
         // 복사 기능
@@ -824,6 +856,59 @@ namespace Griddev.Module.Controllers
         {
             View.Refresh();
             UpdateModeIndicator();
+        }
+
+        // 새 버전 생성
+        private void CreateVersionAction_Execute(object sender, SimpleActionExecuteEventArgs e)
+        {
+            var currentBOM = View.CurrentObject as BOMItem;
+            if (currentBOM?.Parent != null)
+            {
+                Application.ShowViewStrategy.ShowMessage("최상위 BOM에서만 새 버전을 생성할 수 있습니다.", InformationType.Warning);
+                return;
+            }
+
+            if (currentBOM?.Item == null)
+            {
+                Application.ShowViewStrategy.ShowMessage("품목이 선택되지 않았습니다.", InformationType.Warning);
+                return;
+            }
+
+            try
+            {
+                // 새 버전 생성
+                var newVersion = currentBOM.CreateNewVersion();
+                
+                // 필터 적용하여 뷰 새로고침
+                ApplyVersionFilter();
+                
+                // 새 버전으로 포커스 이동
+                View.CurrentObject = newVersion;
+                
+                Application.ShowViewStrategy.ShowMessage(
+                    $"새 버전이 생성되었습니다.\n품목: {currentBOM.ItemName}\n이전 버전: {currentBOM.Version} (비활성)\n새 버전: {newVersion.Version} (활성)", 
+                    InformationType.Success);
+            }
+            catch (Exception ex)
+            {
+                Application.ShowViewStrategy.ShowMessage($"버전 생성 중 오류가 발생했습니다: {ex.Message}", InformationType.Error);
+            }
+        }
+
+        // 버전 보기 토글
+        private void ToggleVersionViewAction_Execute(object sender, SimpleActionExecuteEventArgs e)
+        {
+            showAllVersions = !showAllVersions;
+            
+            // 액션 캡션 변경
+            toggleVersionViewAction.Caption = showAllVersions ? "최신버전만" : "모든버전보기";
+            
+            // 필터 적용
+            ApplyVersionFilter();
+            
+            // 상태 메시지
+            var message = showAllVersions ? "모든 버전이 표시됩니다." : "최신 버전만 표시됩니다.";
+            Application.ShowViewStrategy.ShowMessage(message, InformationType.Info);
         }
         
         // 모드 표시기 업데이트
@@ -1184,16 +1269,18 @@ namespace Griddev.Module.Controllers
             return newBOMItem;
         }
 
-        // 기존 BOM 구조 조회
+        // 기존 BOM 구조 조회 (활성 버전만)
         private List<BOMItem> GetExistingBOMStructure(Item item)
         {
             var objectSpace = View.ObjectSpace;
-            var existingBOMs = objectSpace.GetObjects<BOMItem>(
-                CriteriaOperator.Parse("Item.Oid = ? AND Parent IS NULL", item.Oid))
+            
+            // 활성 버전만 조회
+            var activeBOMs = objectSpace.GetObjects<BOMItem>(
+                CriteriaOperator.Parse("Item.Oid = ? AND Parent IS NULL AND IsActive = True", item.Oid))
                 .ToList();
             
             var allItems = new List<BOMItem>();
-            foreach (var rootItem in existingBOMs)
+            foreach (var rootItem in activeBOMs)
             {
                 allItems.Add(rootItem);
                 allItems.AddRange(GetAllChildren(rootItem));
@@ -1240,6 +1327,32 @@ namespace Griddev.Module.Controllers
                 children.AddRange(GetAllChildren(child));
             }
             return children;
+        }
+
+        // 버전 필터 적용
+        private void ApplyVersionFilter()
+        {
+            try
+            {
+                if (showAllVersions)
+                {
+                    // 모든 버전 표시 - 필터 제거
+                    View.CollectionSource.Criteria.Clear();
+                }
+                else
+                {
+                    // 최신 버전만 표시 - IsActive = true인 최상위 BOM만
+                    var criteria = CriteriaOperator.Parse("IsActive = True AND Parent IS NULL");
+                    View.CollectionSource.Criteria["VersionFilter"] = criteria;
+                }
+                
+                View.Refresh();
+            }
+            catch (Exception ex)
+            {
+                // 필터 적용 실패 시 무시
+                System.Diagnostics.Debug.WriteLine($"버전 필터 적용 실패: {ex.Message}");
+            }
         }
     }
 } 

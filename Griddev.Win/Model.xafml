@@ -10,6 +10,8 @@
 				<ColumnInfo Id="ItemTypeDisplay" Width="80" Index="3" AllowEdit="False" />
 				<ColumnInfo Id="Quantity" Width="80" Index="4" AllowEdit="True" />
 				<ColumnInfo Id="Unit" Width="50" Index="5" AllowEdit="False" />
+				<ColumnInfo Id="Version" Width="80" Index="6" AllowEdit="False" />
+				<ColumnInfo Id="ActiveForDisplay" Width="70" Index="7" AllowEdit="True" />
 			</Columns>
 		</ListView>
 		<ListView Id="Department_ListView" EditorTypeName="DevExpress.ExpressApp.TreeListEditors.Win.TreeListEditor" IsTreeListEditor="True" AllowEdit="True">
@@ -17,6 +19,16 @@
 				<ColumnInfo Id="Name" Width="200" Index="0" AllowEdit="True" />
 				<ColumnInfo Id="EmployeeCount" Width="100" Index="1" AllowEdit="True" />
 				<ColumnInfo Id="ParentDepartment" Width="150" Index="2" AllowEdit="False" />
+			</Columns>
+		</ListView>
+		<ListView Id="Order_ListView" EditorTypeName="Griddev.Win.Editors.MasterDetailListEditor" AllowEdit="True">
+			<Columns>
+				<ColumnInfo Id="OrderNo" Width="120" Index="0" />
+				<ColumnInfo Id="OrderDate" Width="100" Index="1" />
+				<ColumnInfo Id="CustomerName" Width="150" Index="2" />
+				<ColumnInfo Id="ProjectName" Width="150" Index="3" />
+				<ColumnInfo Id="Status" Width="80" Index="4" />
+				<ColumnInfo Id="TotalAmount" Width="100" Index="5" />
 			</Columns>
 		</ListView>
 	</Views>

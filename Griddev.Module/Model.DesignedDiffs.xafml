@@ -4,5 +4,16 @@
     <LayoutManagerOptions RequiredFieldMark="*" />
   </Options>
   <Views>
+    <ListView Id="Item_ListView" AllowEdit="False" AllowNew="True" AllowDelete="True" 
+              MasterDetailMode="ListViewOnly" AutoExpandAllGroups="True">
+      <Columns>
+        <ColumnInfo Id="ItemCode" PropertyName="ItemCode" Width="120" />
+        <ColumnInfo Id="ItemName" PropertyName="ItemName" Width="200" />
+        <ColumnInfo Id="ItemType" PropertyName="ItemType" Width="100" />
+        <ColumnInfo Id="Unit" PropertyName="Unit" Width="80" />
+        <ColumnInfo Id="Description" PropertyName="Description" Width="300" />
+        <ColumnInfo Id="IsActive" PropertyName="IsActive" Width="80" />
+      </Columns>
+    </ListView>
   </Views>
 </Application>
